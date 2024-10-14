@@ -219,7 +219,6 @@ class NeuropacsScriptedModuleWidget(ScriptedLoadableModuleWidget, VTKObservation
 
             # Open file save dialog to let the user select where to save the image
             file_dialog = qt.QFileDialog()
-            # file_path = file_dialog.getSaveFileName(None, "Save Image", f"neuropacs_{orderId}.{format}", "PNG Files (*.png)")
             file_path = file_dialog.getSaveFileName(None, "Save Report", f"neuropacs_{orderId}.{format}")
 
             if file_path:
