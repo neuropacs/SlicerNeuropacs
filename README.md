@@ -25,6 +25,8 @@ Requirements for the software and other tools to build, test and push
 
 ## Getting Started
 
+![neuropacs™ Slicer Extension example](./NeuropacsScriptedModule/Resources/Examples/neuropacsModuleExample.png)
+
 ### Usage
 
 1. Obtain an API key
