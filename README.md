@@ -25,6 +25,26 @@ Requirements for the software and other tools to build, test and push
 
 ## Getting Started
 
+### Usage
+
+1. Obtain an API key
+
+2. Enter your API key and press "Validate"
+
+This will validate your API key with the neuropacs™ servers and start a new session. If there are existing jobs, the table will also be populated.
+
+3. Select a DICOM dataset from the dropdown list.
+
+For instructions on how to upload a DICOM datasets, refer to Slicer 3D documentation.
+
+4. Select "Run analysis" to begin the upload and analysis process.
+
+5. Once started, your order will automatically appear in the table below.
+
+6. Once your order is completed, the option to download will become availble in PNG, TXT, JSON, or XML format.
+
+7. Refresh the DICOM dataset dropdown and table by selecting the "Refresh" button.
+
 ### Installing Locally
 
 Step by step instructions on how to get a development environment running:
@@ -46,33 +66,9 @@ Step by step instructions on how to get a development environment running:
 The extension should now be available in the extention dropdowns under the "Diffusion" tab.
 For usage instructions, refer to the "Usage" section of this readme.
 
-### Usage
-
-1. Obtain an API key
-
-2. Enter your API key and press "Validate"
-
-This will validate your API key with the neuropacs™ servers and start a new session. If there are existing jobs, the table will also be populated.
-
-3. Select a DICOM dataset from the dropdown list.
-
-For instructions on how to upload a DICOM datasets, refer to Slicer 3D documentation.
-
-4. Select "Run analysis" to begin the upload and analysis process.
-
-5. Once started, your order will automatically appear in the table below.
-
-6. Once your order is completed, the option to download will become availble in PNG, TXT, JSON, or XML format.
-
-7. Refresh the DICOM dataset dropdown and table by selecting the "Refresh" button.
-
 ## Authors
 
 - **Kerrick Cavanaugh** - Lead Software Engineer, neuropacs Corp.
-
-See also the list of
-[contributors](https://github.com/PurpleBooth/a-good-readme-template/contributors)
-who participated in this project.
 
 ## License
 
