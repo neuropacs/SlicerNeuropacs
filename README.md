@@ -68,7 +68,7 @@ For usage instructions, refer to the "Usage" section of this readme.
 
 ## Authors
 
-- **Kerrick Cavanaugh** - Lead Software Enginee, neuropacs Corp.
+- **Kerrick Cavanaugh** - Lead Software Engineer, neuropacs Corp.
 
 ## License
 
