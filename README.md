@@ -55,7 +55,7 @@ Step by step instructions on how to get a development environment running:
 
    git clone https://github.com/neuropacman/SlicerNeuropacs
 
-2. Navigate to Slicer 3D "Extension Manager"
+2. Navigate to Slicer 3D "Extension Wizard"
 
 3. Select "Select Extension"
 

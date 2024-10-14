@@ -35,9 +35,9 @@ class NeuropacsScriptedModule(ScriptedLoadableModule):
 
     def __init__(self, parent):
         ScriptedLoadableModule.__init__(self, parent)
-        self.parent.title = _("neuropacs")
+        self.parent.title = _("Parkinsonism Differentiation")
         self.parent.categories = [translate("qSlicerAbstractCoreModule", "Diffusion")]
-        self.parent.dependencies = ['neuropacs']  # TODO: add here list of module names that this module requires
+        self.parent.dependencies = []  # TODO: add here list of module names that this module requires
         self.parent.contributors = ["Kerrick Cavanaugh (neuropacs Corp.)"]
         self.parent.helpText = _("""
 neuropacs scripted loadable module bundled in an extension.
