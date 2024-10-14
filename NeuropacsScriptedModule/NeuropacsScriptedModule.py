@@ -35,16 +35,14 @@ class NeuropacsScriptedModule(ScriptedLoadableModule):
 
     def __init__(self, parent):
         ScriptedLoadableModule.__init__(self, parent)
-        self.parent.title = _("NeuropacsScriptedModule")  # TODO: make this more human readable by adding spaces
-        # TODO: set categories (folders where the module shows up in the module selector)
-        self.parent.categories = [translate("qSlicerAbstractCoreModule", "Examples")]
-        self.parent.dependencies = []  # TODO: add here list of module names that this module requires
+        self.parent.title = _("neuropacs")
+        self.parent.categories = [translate("qSlicerAbstractCoreModule", "Diffusion")]
+        self.parent.dependencies = ['neuropacs']  # TODO: add here list of module names that this module requires
         self.parent.contributors = ["Kerrick Cavanaugh (neuropacs Corp.)"]
         self.parent.helpText = _("""
 neuropacs scripted loadable module bundled in an extension.
 See more information at <a href="https://neuropacs.com">neuropacs documentation</a>.
 """)
-        # TODO: replace with organization, grant and thanks
         self.parent.acknowledgementText = _("""
 This file was originally developed by Kerrick Cavanaugh (neuropacs Corp.).
 """)
@@ -406,7 +404,7 @@ class NeuropacsScriptedModuleWidget(ScriptedLoadableModuleWidget, VTKObservation
                 self.ui.infoLabel.setText("Validating API key... ")
                 qt.QApplication.processEvents()
 
-                self.npcs = neuropacs.init("https://ud7cvn39n4.execute-api.us-east-1.amazonaws.com/sandbox", enteredKey)
+                self.npcs = neuropacs.init("https://ud7cvn39n4.execute-api.us-east-1.amazonaws.com/sandbox", enteredKey, "Slicer")
                 self.npcs.connect()
 
                 self.ui.infoLabel.setText("API key validated, populating... ")

@@ -5,7 +5,7 @@ project(NeuropacsSlicerExtension)
 #-----------------------------------------------------------------------------
 # Extension meta-information
 set(EXTENSION_HOMEPAGE "https://www.slicer.org/wiki/Documentation/Nightly/Extensions/NeuropacsSlicerExtension")
-set(EXTENSION_CATEGORY "Examples")
+set(EXTENSION_CATEGORY "Diffusion")
 set(EXTENSION_CONTRIBUTORS "Kerrick Cavanaugh (neuropacs Corp.)")
 set(EXTENSION_DESCRIPTION "Neuropacs Slicer extension")
 set(EXTENSION_ICONURL "https://www.example.com/Slicer/Extensions/NeuropacsSlicerExtension.png")
