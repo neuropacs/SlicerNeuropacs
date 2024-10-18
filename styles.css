@@ -151,6 +151,7 @@ footer a:hover {
 .instruction-image {
   max-width: 50%; /* Adjusts the image width to fit within the container */
   height: auto; /* Maintains the aspect ratio */
-  margin-top: 10px; /* Adds some space between the text and the image */
+  margin-top: 10px;
+  margin-bottom: 10px;
   display: block; /* Ensures the image appears on its own line */
 }
