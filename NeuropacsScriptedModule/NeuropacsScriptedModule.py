@@ -19,7 +19,7 @@ from slicer import vtkMRMLScalarVolumeNode
 import qt
 
 # neuropacs module
-# import neuropacs
+neuropacs = None
 
 #
 # NeuropacsScriptedModule
@@ -44,10 +44,13 @@ See more information at <a href="https://neuropacs.com">neuropacs documentation<
         self.parent.acknowledgementText = _("""
 This file was originally developed by Kerrick Cavanaugh (neuropacs Corp.).
 """)
+        # install neuropacs pip module if not already installed
+        global neuropacs
         try:
             import neuropacs
         except ImportError:
             slicer.util.pip_install('neuropacs')
+            import neuropacs
 
 #
 # NeuropacsScriptedModuleParameterNode
@@ -398,6 +401,7 @@ class NeuropacsScriptedModuleWidget(ScriptedLoadableModuleWidget, VTKObservation
 
     def onValidateKeyButton(self) -> None:
         """Validate API key on button press"""
+        global neuropacs
         with slicer.util.tryWithErrorDisplay(_("Failed to validate API key."), waitCursor=True):
             enteredKey = self.ui.apiKeyLineEdit.text
             # Initialize neuropacs
@@ -405,7 +409,8 @@ class NeuropacsScriptedModuleWidget(ScriptedLoadableModuleWidget, VTKObservation
                 self.ui.infoLabel.setText("Validating API key... ")
                 qt.QApplication.processEvents()
 
-                self.npcs = neuropacs.init("https://ud7cvn39n4.execute-api.us-east-1.amazonaws.com/sandbox", enteredKey, "Slicer")
+                # initialize neuropacs
+                self.npcs = neuropacs.init("https://jdfkdttvlf.execute-api.us-east-1.amazonaws.com/prod", enteredKey, "Slicer")
                 self.npcs.connect()
 
                 self.ui.infoLabel.setText("API key validated, populating... ")
@@ -428,6 +433,7 @@ class NeuropacsScriptedModuleWidget(ScriptedLoadableModuleWidget, VTKObservation
 
                 logging.info("API key validated")
             except Exception as e:
+                print(str(e))
                 self.ui.infoLabel.setText("API key validation failed.")
                 qt.QApplication.processEvents()
                 logging.error("API key validation failed")
@@ -499,7 +505,7 @@ class NeuropacsScriptedModuleWidget(ScriptedLoadableModuleWidget, VTKObservation
                     qt.QApplication.processEvents()
 
                     # Run neuropacs order
-                    self.npcs.run_job('PD/MSA/PSP-v1.0', orderId)
+                    self.npcs.run_job('Atypical/MSAp/PSP-v1.0', orderId)
                     logging.info(f"order {orderId} started")
 
                     self.ui.infoLabel.setText(f"Order {orderId} started...")
