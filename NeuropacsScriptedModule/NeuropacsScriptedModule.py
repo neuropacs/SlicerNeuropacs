@@ -19,9 +19,7 @@ from slicer import vtkMRMLScalarVolumeNode
 import qt
 
 # neuropacs module
-import neuropacs
-from io import BytesIO
-
+# import neuropacs
 
 #
 # NeuropacsScriptedModule
@@ -46,6 +44,10 @@ See more information at <a href="https://neuropacs.com">neuropacs documentation<
         self.parent.acknowledgementText = _("""
 This file was originally developed by Kerrick Cavanaugh (neuropacs Corp.).
 """)
+        try:
+            import neuropacs
+        except ImportError:
+            slicer.util.pip_install('neuropacs')
 
 #
 # NeuropacsScriptedModuleParameterNode
