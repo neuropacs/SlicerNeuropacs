@@ -3,18 +3,18 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>SlicerNeuropacs Wiki</title>
-    <link rel="stylesheet" href="styles.css" />
+    <title>SlicerNeuropacs Extension Wiki</title>
+    <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
     <header>
-      <h1>Project Wiki</h1>
+      <h1>SlicerNeuropacs Extension Wiki</h1>
       <nav>
         <ul>
           <li><a href="#introduction">Introduction</a></li>
           <li><a href="#features">Features</a></li>
-          <li><a href="#installation">Installation</a></li>
           <li><a href="#usage">Usage</a></li>
+          <li><a href="#publications">Publications</a></li>
           <li><a href="#faq">FAQ</a></li>
         </ul>
       </nav>
@@ -24,34 +24,64 @@
       <section id="introduction">
         <h2>Introduction</h2>
         <p>
-          This project is designed to provide a simple and efficient solution to
-          ...
+          The neuropacs™ system is a software application intended to receive
+          and analyze diffusion MRI data from patients aged 40 years and older
+          presenting with Parkinson's disease (PD) symptoms. The neuropacs™
+          system provides a report to aid neuroradiologists and/or neurologists
+          in identifying patients with Atypical Parkinsonism (i.e., multiple
+          system atrophy Parkinsonian variant (MSAp), or progressive
+          supranuclear palsy (PSP)). The results of the neuropacs™ system are
+          intended to provide supplemental information in conjunction with a
+          standard neurological assessment and other clinical tests. Patient
+          management decisions should not be made solely on the basis of
+          analysis by the neuropacs™ system.
         </p>
+        <img src="./resources/SlicerNeuropacsMain.png" class="instruction-image"></img>
       </section>
 
       <section id="features">
         <h2>Features</h2>
         <ul>
           <li>Feature 1: Description of feature 1.</li>
+          dsf
           <li>Feature 2: Description of feature 2.</li>
           <li>Feature 3: Description of feature 3.</li>
         </ul>
       </section>
 
-      <section id="installation">
-        <h2>Installation</h2>
-        <p>To install the project, follow these steps:</p>
-        <pre><code>
-        git clone https://github.com/yourusername/yourproject.git
-        cd yourproject
-        npm install
-      </code></pre>
-      </section>
-
       <section id="usage">
         <h2>Usage</h2>
-        <p>Once installed, you can run the project using:</p>
-        <pre><code>npm start</code></pre>
+        <ol>
+            <li>Acquire an API key.
+                <p class="subtext">Please contact kerrick@neuropacs.com for information on acquiring an API key.</p>      
+            </li>
+
+            <li>Select the "Parkinsonism Differentiation" Module.
+                <p class="subtext">Modules -> Diffusion -> Parkinsonism Differentiation</p>      
+            </li>
+
+            <li>Validate your API key.
+                <p class="subtext">Enter your API key in the input and select "Validate". This will initialize a session with neuropacs™ and activate the extension functions in 3D Slicer.</p>      
+            </li>
+
+            <li>Upload a DICOM dataset.
+                <p class="subtext">For information on uploading DICOM datasets, visit <a href="https://slicer.readthedocs.io/en/latest/user_guide/modules/dicom.html" target="_blank">3D Slicer documentation</a>.</p>      
+            </li>
+
+            <li>Choose desired dataset from the dropdown list (press "Refresh" if the dataset does not appear initially).
+                <p class="subtext">Make sure you have all the necessary tools and equipment before starting.</p>         
+                <img src="./resources/SlicerNeuropacsMain.png" alt="Dataset dropdown image" class="instruction-image">
+            </li>
+
+            
+            <li>Select "Run analysis" to being the neuropacs process.</li>
+        </ol>
+
+      </section>
+
+      <section id="publications">
+        <h2>Publications</h2>
+        <p>Put publications here</p>
       </section>
 
       <section id="faq">
