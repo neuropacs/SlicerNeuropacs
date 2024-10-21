@@ -90,7 +90,6 @@ class NeuropacsScriptedModuleWidget(ScriptedLoadableModuleWidget, VTKObservation
         self.neuropacsOrderFilePath = ""
 
         last_used_path = slicer.util.settingsValue("neuropacs/orderMapPath", default = None)
-        print(last_used_path)
         if  last_used_path == None:
             file_dialog = qt.QFileDialog()
             file_path = file_dialog.getSaveFileName(None, "Choose Config File Path", qt.QStandardPaths.writableLocation(qt.QStandardPaths.DocumentsLocation) + "/neuropacs_orders.json", "All Files (*)")
