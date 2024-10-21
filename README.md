@@ -31,21 +31,23 @@ Requirements for the software and other tools to build, test and push
 
 1. Obtain an API key
 
-2. Enter your API key and press "Validate"
+2. Select a path to store existing orders, defaults to "Documents" folder (only need to do this once - this path should never change)
+
+3. Enter your API key and press "Validate"
 
 This will validate your API key with the neuropacs™ servers and start a new session. If there are existing jobs, the table will also be populated.
 
-3. Select a DICOM dataset from the dropdown list.
+4. Select a DICOM dataset from the dropdown list.
 
 For instructions on how to upload a DICOM datasets, refer to Slicer 3D documentation.
 
-4. Select "Run analysis" to begin the upload and analysis process.
+5. Select "Run analysis" to begin the upload and analysis process.
 
-5. Once started, your order will automatically appear in the table below.
+6. Once started, your order will automatically appear in the table below.
 
-6. Once your order is completed, the option to download will become availble in PNG, TXT, JSON, or XML format.
+7. Once your order is completed, the option to download will become availble in PNG, TXT, JSON, or XML format.
 
-7. Refresh the DICOM dataset dropdown and table by selecting the "Refresh" button.
+8. Refresh the DICOM dataset dropdown and table by selecting the "Refresh" button.
 
 ### Installing Locally
 

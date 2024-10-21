@@ -35,7 +35,7 @@ class NeuropacsScriptedModule(ScriptedLoadableModule):
         ScriptedLoadableModule.__init__(self, parent)
         self.parent.title = _("Parkinsonism Differentiation")
         self.parent.categories = [translate("qSlicerAbstractCoreModule", "Diffusion")]
-        self.parent.dependencies = []  # TODO: add here list of module names that this module requires
+        self.parent.dependencies = []
         self.parent.contributors = ["Kerrick Cavanaugh (neuropacs Corp.)"]
         self.parent.helpText = _("""
 neuropacs scripted loadable module bundled in an extension.
@@ -44,13 +44,7 @@ See more information at <a href="https://neuropacs.com">neuropacs documentation<
         self.parent.acknowledgementText = _("""
 This file was originally developed by Kerrick Cavanaugh (neuropacs Corp.).
 """)
-        # install neuropacs pip module if not already installed
-        global neuropacs
-        try:
-            import neuropacs
-        except ImportError:
-            slicer.util.pip_install('neuropacs')
-            import neuropacs
+
 
 #
 # NeuropacsScriptedModuleParameterNode
@@ -93,11 +87,29 @@ class NeuropacsScriptedModuleWidget(ScriptedLoadableModuleWidget, VTKObservation
         self._parameterNode = None
         self._parameterNodeGuiTag = None
         self.neuropacsOrderMap = {}
-        self.neuropacsOrderFilePath = os.path.join(slicer.app.temporaryPath, "neuropacs_order_map.json")
+        self.neuropacsOrderFilePath = ""
+
+        last_used_path = slicer.util.settingsValue("neuropacs/orderMapPath", default = None)
+        print(last_used_path)
+        if  last_used_path == None:
+            file_dialog = qt.QFileDialog()
+            file_path = file_dialog.getSaveFileName(None, "Choose Config File Path", qt.QStandardPaths.writableLocation(qt.QStandardPaths.DocumentsLocation) + "/neuropacs_orders.json", "All Files (*)")
+            if file_path:
+                qt.QSettings().setValue("neuropacs/orderMapPath", file_path)
+                self.neuropacsOrderFilePath = file_path
+        else:
+            self.neuropacsOrderFilePath = last_used_path
+
+                
+
+
 
     def setup(self) -> None:
         """Called when the user opens the module the first time and the widget is initialized."""
         ScriptedLoadableModuleWidget.setup(self)
+
+        # Setup python requirements
+        self.setupPythonRequirements()
 
         # Load widget from .ui file (created by Qt Designer).
         # Additional widgets can be instantiated manually and added to self.layout.
@@ -147,6 +159,24 @@ class NeuropacsScriptedModuleWidget(ScriptedLoadableModuleWidget, VTKObservation
             self._parameterNode.disconnectGui(self._parameterNodeGuiTag)
             self._parameterNodeGuiTag = None
             self.removeObserver(self._parameterNode, vtk.vtkCommand.ModifiedEvent, self._checkCanNeuropacs)
+
+    def setupPythonRequirements(self):
+        # install neuropacs pip module if not already installed
+        global neuropacs
+        try:
+            import neuropacs
+        except ImportError:
+            if slicer.util.confirmOkCancelDisplay(
+            "The module requires neuropacs python package, which will now be installed.\n",
+            "SlicerNeuropacs initialization"
+            ):
+                slicer.util.pip_install('neuropacs')
+                
+
+        # upgrade to the latest version
+        slicer.util.pip_install("--upgrade neuropacs")
+
+        import neuropacs
 
     def onSceneStartClose(self, caller, event) -> None:
         """Called just before the scene is closed."""
