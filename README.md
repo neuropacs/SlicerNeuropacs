@@ -31,6 +31,8 @@ Requirements for the software and other tools to build, test and push
 
 1. Obtain an API key
 
+Fill out the form located at the bottom of the [neuropacs™ website](https://neuropacs.com) to request more information.
+
 2. Select a path to store existing orders, defaults to "Documents" folder (only need to do this once - this path should never change)
 
 3. Enter your API key and press "Validate"
@@ -39,7 +41,7 @@ This will validate your API key with the neuropacs™ servers and start a new se
 
 4. Select a DICOM dataset from the dropdown list.
 
-For instructions on how to upload a DICOM datasets, refer to Slicer 3D documentation.
+For instructions on how to upload a DICOM datasets, refer to [Slicer 3D documentation](https://slicer.readthedocs.io/en/latest/user_guide/modules/dicom.html).
 
 5. Select "Run analysis" to begin the upload and analysis process.
 

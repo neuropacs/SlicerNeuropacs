@@ -1,22 +1,16 @@
 import logging
 import os
 import json
-from typing import Annotated, Optional
-
-import vtk
 
 import slicer
 from slicer.i18n import tr as _
 from slicer.i18n import translate
 from slicer.ScriptedLoadableModule import *
 from slicer.util import VTKObservationMixin
-from slicer.parameterNodeWrapper import (
-    parameterNodeWrapper,
-    WithinRange,
-)
 
-from slicer import vtkMRMLScalarVolumeNode
+
 import qt
+import ctk
 
 # neuropacs module
 neuropacs = None
@@ -47,29 +41,6 @@ This file was originally developed by Kerrick Cavanaugh (neuropacs Corp.).
 
 
 #
-# NeuropacsScriptedModuleParameterNode
-#
-
-@parameterNodeWrapper
-class NeuropacsScriptedModuleParameterNode:
-    """
-    The parameters needed by module.
-
-    inputVolume - The volume to threshold.
-    imageThreshold - The value at which to threshold the input volume.
-    invertThreshold - If true, will invert the threshold.
-    thresholdedVolume - The output volume that will contain the thresholded volume.
-    invertedVolume - The output volume that will contain the inverted thresholded volume.
-    """
-
-    inputVolume: vtkMRMLScalarVolumeNode
-    imageThreshold: Annotated[float, WithinRange(-100, 500)] = 100
-    invertThreshold: bool = False
-    thresholdedVolume: vtkMRMLScalarVolumeNode
-    invertedVolume: vtkMRMLScalarVolumeNode
-
-
-#
 # NeuropacsScriptedModuleWidget
 #
 
@@ -84,31 +55,21 @@ class NeuropacsScriptedModuleWidget(ScriptedLoadableModuleWidget, VTKObservation
         ScriptedLoadableModuleWidget.__init__(self, parent)
         VTKObservationMixin.__init__(self)  # needed for parameter node observation
         self.logic = None
-        self._parameterNode = None
-        self._parameterNodeGuiTag = None
         self.neuropacsOrderMap = {}
         self.neuropacsOrderFilePath = ""
 
         last_used_path = slicer.util.settingsValue("neuropacs/orderMapPath", default = None)
         if  last_used_path == None:
-            file_dialog = qt.QFileDialog()
-            file_path = file_dialog.getSaveFileName(None, "Choose Config File Path", qt.QStandardPaths.writableLocation(qt.QStandardPaths.DocumentsLocation) + "/neuropacs_orders.json", "All Files (*)")
-            if file_path:
-                qt.QSettings().setValue("neuropacs/orderMapPath", file_path)
-                self.neuropacsOrderFilePath = file_path
+            self.load_npcs_file_selector(qt.QStandardPaths.writableLocation(qt.QStandardPaths.DocumentsLocation) + "/neuropacs_orders.json")
         else:
+            self.load_npcs_file_selector(last_used_path)
             self.neuropacsOrderFilePath = last_used_path
-
-                
-
 
 
     def setup(self) -> None:
         """Called when the user opens the module the first time and the widget is initialized."""
         ScriptedLoadableModuleWidget.setup(self)
 
-        # Setup python requirements
-        self.setupPythonRequirements()
 
         # Load widget from .ui file (created by Qt Designer).
         # Additional widgets can be instantiated manually and added to self.layout.
@@ -121,12 +82,6 @@ class NeuropacsScriptedModuleWidget(ScriptedLoadableModuleWidget, VTKObservation
         # "setMRMLScene(vtkMRMLScene*)" slot.
         uiWidget.setMRMLScene(slicer.mrmlScene)
 
-        # Connections
-
-        # These connections ensure that we update parameter node when scene is closed
-        self.addObserver(slicer.mrmlScene, slicer.mrmlScene.StartCloseEvent, self.onSceneStartClose)
-        self.addObserver(slicer.mrmlScene, slicer.mrmlScene.EndCloseEvent, self.onSceneEndClose)
-
         self.__setNeuropacsImage()
 
         # Buttons
@@ -138,55 +93,78 @@ class NeuropacsScriptedModuleWidget(ScriptedLoadableModuleWidget, VTKObservation
         # Disable actions before API key validation
         self.__disableActions()
 
-        # Make sure parameter node is initialized (needed for module reload)
-        self.initializeParameterNode()
+    def load_npcs_file_selector(self, default_path):
+        parametersCollapsibleButton = ctk.ctkCollapsibleButton()
+        parametersCollapsibleButton.text = "Parameters"
+        self.layout.addWidget(parametersCollapsibleButton)
 
+        # Layout within the dummy collapsible button
+        parametersFormLayout = qt.QFormLayout(parametersCollapsibleButton)
+        self.orderFilePathSelector = ctk.ctkPathLineEdit()
+        self.orderFilePathSelector.filters = ctk.ctkPathLineEdit.Dirs
+        self.orderFilePathSelector.setCurrentPath(default_path)
+        self.orderFilePathSelector.settingKey = 'neuropacsOrderFilePath'
 
-    def cleanup(self) -> None:
-        """Called when the application closes and the module widget is destroyed."""
-        self.removeObservers()
+        # Connect the signal to a function to print the selected path
+        self.orderFilePathSelector.currentPathChanged.connect(self.on_order_path_changed)
 
-    def enter(self) -> None:
-        """Called each time the user opens this module."""
-        # Make sure parameter node exists and observed
-        self.initializeParameterNode()
+        parametersFormLayout.addRow("Order file path:", self.orderFilePathSelector)
 
-    def exit(self) -> None:
-        """Called each time the user opens a different module."""
-        # Do not react to parameter node changes (GUI will be updated when the user enters into the module)
-        if self._parameterNode:
-            self._parameterNode.disconnectGui(self._parameterNodeGuiTag)
-            self._parameterNodeGuiTag = None
-            self.removeObserver(self._parameterNode, vtk.vtkCommand.ModifiedEvent, self._checkCanNeuropacs)
+    def on_order_path_changed(self, new_path):
+        if(new_path):
+            print(new_path + "/neuropacs_orders.json")
+            self.orderFilePathSelector.currentPathChanged.disconnect(self.on_order_path_changed)
+            self.orderFilePathSelector.setCurrentPath(new_path + "/neuropacs_orders.json")
+            self.orderFilePathSelector.currentPathChanged.connect(self.on_order_path_changed)
+            self.neuropacsOrderFilePath = new_path + "/neuropacs_orders.json"
+            qt.QSettings().setValue("neuropacs/orderMapPath", new_path + "/neuropacs_orders.json")
 
     def setupPythonRequirements(self):
         # install neuropacs pip module if not already installed
         global neuropacs
         try:
+            self.ensure_latest_neuropacs_installed()
             import neuropacs
-        except ImportError:
-            if slicer.util.confirmOkCancelDisplay(
-            "The module requires neuropacs python package, which will now be installed.\n",
-            "SlicerNeuropacs initialization"
-            ):
-                slicer.util.pip_install('neuropacs')
-                
+        except Exception as e:
+            print(str(e))
 
-        # upgrade to the latest version
-        slicer.util.pip_install("--upgrade neuropacs")
+        # here only call upgrade if does not have most recent version
 
-        import neuropacs
+    def ensure_latest_neuropacs_installed(self):
+        import importlib.metadata
+        import importlib.util
+        import packaging.version
+        import requests
 
-    def onSceneStartClose(self, caller, event) -> None:
-        """Called just before the scene is closed."""
-        # Parameter node will be reset, do not use it anymore
-        self.setParameterNode(None)
+        needToInstallNeuropacs = True
+        installed_version = None
+        latest_version = None
 
-    def onSceneEndClose(self, caller, event) -> None:
-        """Called just after the scene is closed."""
-        # If this module is shown while the scene is closed then recreate a new parameter node immediately
-        if self.parent.isEntered:
-            self.initializeParameterNode()
+        # Check the installed version of neuropacs
+        try:
+            installed_version = importlib.metadata.version("neuropacs")
+        except Exception:
+            pass  # Neuropacs is not installed or there was an error getting the version
+
+        # Get the latest version of neuropacs from PyPI
+        try:
+            response = requests.get("https://pypi.org/pypi/neuropacs/json")
+            latest_version = response.json()["info"]["version"]
+        except Exception:
+            print("Error fetching the latest version of neuropacs from PyPI.")
+            return
+
+        # Compare versions and decide if we need to install/upgrade
+        if installed_version is not None and packaging.version.parse(installed_version) >= packaging.version.parse(latest_version):
+            # The installed version is up to date
+            needToInstallNeuropacs = False
+
+        if needToInstallNeuropacs:
+            print(f"Upgrading neuropacs to version {latest_version}...")
+            slicer.util.pip_install(f"neuropacs=={latest_version}")
+        else:
+            print(f"Neuropacs is already up to date (version {installed_version}).")
+
 
     def saveNeuropacsOrderMapToFile(self):
         """Save the neuropacs order map to a JSON file."""
@@ -211,30 +189,6 @@ class NeuropacsScriptedModuleWidget(ScriptedLoadableModuleWidget, VTKObservation
         """Retrieve the neuropacs order associated with a patient."""
         return self.neuropacsOrderMap.get(orderId, "No order found")
 
-    def initializeParameterNode(self) -> None:
-        """Ensure parameter node exists and observed."""
-        # Parameter node stores all user choices in parameter values, node selections, etc.
-        # so that when the scene is saved and reloaded, these settings are restored.
-        # self.setParameterNode(self.logic.getParameterNode())
-        pass
-
-
-    def setParameterNode(self, inputParameterNode: Optional[NeuropacsScriptedModuleParameterNode]) -> None:
-        """
-        Set and observe parameter node.
-        Observation is needed because when the parameter node is changed then the GUI must be updated immediately.
-        """
-
-        if self._parameterNode:
-            self._parameterNode.disconnectGui(self._parameterNodeGuiTag)
-            self.removeObserver(self._parameterNode, vtk.vtkCommand.ModifiedEvent, self._checkCanNeuropacs)
-        self._parameterNode = inputParameterNode
-        if self._parameterNode:
-            # Note: in the .ui file, a Qt dynamic property called "SlicerParameterName" is set on each
-            # ui element that needs connection.
-            self._parameterNodeGuiTag = self._parameterNode.connectGui(self.ui)
-            self.addObserver(self._parameterNode, vtk.vtkCommand.ModifiedEvent, self._checkCanNeuropacs)
-            self._checkCanNeuropacs()
 
     def _checkCanNeuropacs(self, caller=None, event=None) -> None:
         """Can neuropacs be pressed""" 
@@ -266,10 +220,54 @@ class NeuropacsScriptedModuleWidget(ScriptedLoadableModuleWidget, VTKObservation
                     with open(file_path, "wb") as report_file:
                         report_file.write(results_bytes)
 
+            # Display the image/txt in a Slicer viewer
+            if format == "png":
+                self.display_png_in_slicer(file_path)
+            elif format == "txt" or format == "json" or format == "xml":
+                self.display_text_in_slicer(file_path)
+
             
             # Notify the user that the download is complete
             qt.QMessageBox.information(None, "Download Complete", f"Report neuropacs_{orderId}.{format} downloaded successfully at {file_path}")
         
+    def display_png_in_slicer(self, file_path):
+        # Load the PNG as a volume
+        success, volume_node = slicer.util.loadVolume(file_path, returnNode=True)
+        
+        if success:
+            # Set up the slice viewer to show the PNG image
+            slicer.app.layoutManager().setLayout(slicer.vtkMRMLLayoutNode.SlicerLayoutOneUpRedSliceView)
+            red_logic = slicer.app.layoutManager().sliceWidget("Red").sliceLogic()
+            red_logic.GetSliceCompositeNode().SetBackgroundVolumeID(volume_node.GetID())
+        else:
+            print("Failed to load and display the PNG image.")
+
+    def display_text_in_slicer(self, file_path):
+        # Read the file content
+        with open(file_path, 'r') as file:
+            content = file.read()
+
+        # Create a new QTextEdit widget to display the content
+        text_edit = qt.QTextEdit()
+        text_edit.setPlainText(content)
+        text_edit.setReadOnly(True)  # Make the text read-only
+
+        # Add the text widget to the Slicer layout
+        main_window = slicer.util.mainWindow()
+        central_widget = main_window.centralWidget()
+
+        # Create a layout if not already present
+        layout = central_widget.layout()
+        if not layout:
+            layout = qt.QVBoxLayout(central_widget)
+            central_widget.setLayout(layout)
+
+        # Add the QTextEdit to the main window's layout
+        layout.addWidget(text_edit)
+
+        # Optionally print a message confirming the text was displayed
+        print("Text content loaded into Slicer's main window.")
+
     def __deleteOrder(self, order_id):
         """Delete an order from the table"""
         with slicer.util.tryWithErrorDisplay(_("Failed to delete order."), waitCursor=True):
@@ -333,12 +331,9 @@ class NeuropacsScriptedModuleWidget(ScriptedLoadableModuleWidget, VTKObservation
 
             status_info = self.__extractInfoFromStatus(status)
             status_progress = self.__extractProgressFromStatus(status)
-            
-
 
             # Download button
             downloadButton = qt.QPushButton("Download")
-            # downloadMenu.clicked.connect(lambda _, order=order: self.__downloadReport(order))
 
             # Set button disabled if job is not done (100%)
             if not status_progress == "100%":
@@ -435,6 +430,11 @@ class NeuropacsScriptedModuleWidget(ScriptedLoadableModuleWidget, VTKObservation
             enteredKey = self.ui.apiKeyLineEdit.text
             # Initialize neuropacs
             try:
+                self.ui.infoLabel.setText("Setting up Python requirements... ")
+                qt.QApplication.processEvents()
+                # Setup python requirements
+                self.setupPythonRequirements()
+
                 self.ui.infoLabel.setText("Validating API key... ")
                 qt.QApplication.processEvents()
 
