@@ -1,3 +1,5 @@
+![CodeQL](https://github.com/neuropacs/SlicerNeuropacs/actions/workflows/codeql-analysis.yml/badge.svg)
+
 # neuropacs™ Slicer Extension
 
 The neuropacs™ system is a software application intended to receive and analyze
