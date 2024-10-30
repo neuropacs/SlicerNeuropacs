@@ -3,28 +3,41 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>SlicerNeuropacs Extension Wiki</title>
-    <link rel="stylesheet" href="./styles.css" />
+    <title>3D Slicer Integration Wiki</title>
+    <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <header>
-      <h1>SlicerNeuropacs Extension Wiki</h1>
-      <nav>
-        <ul>
-          <li><a href="#introduction">Introduction</a></li>
-          <li><a href="#modules">Modules</a></li>
-          <li><a href="#usage">Usage</a></li>
-          <li><a href="#publications">Publications</a></li>
-          <li><a href="#contact">Contact</a></li>
-          <li><a href="#license">License</a></li>
-          <!-- <li><a href="#faq">FAQ</a></li> -->
-        </ul>
-      </nav>
+    <header class="header">
+      <div class="header-content">
+        <img
+          src="/resources/neuropacs_icon.png"
+          alt="neuropacs Logo"
+          class="logo"
+        />
+        <div class="header-text">
+          <h1>3D Slicer Integration Wiki</h1>
+          <p>
+            The SlicerNeuropacs Extension provides an integrated solution for neuropacs™ analysis, allowing users to directly leverage our product's capabilities within the 3D Slicer ecosystem.
+          </p>
+        </div>
+      </div>
     </header>
 
-    <main>
-      <section id="introduction">
-        <h2>Introduction</h2>
+    <nav class="navbar">
+      <ul>
+        <li><a href="#overview">Overview</a></li>
+        <li><a href="#modules">Modules</a></li>
+        <li><a href="#usage">Usage</a></li>
+        <li><a href="#publications">Publications</a></li>
+        <li><a href="#contact">Contact</a></li>
+        <li><a href="#license">License</a></li>
+        <!-- <li><a href="#faq">FAQ</a></li> -->
+      </ul>
+    </nav>
+
+    <main class="main-content">
+      <section id="overview">
+        <h2>Overview</h2>
         <p>
           The neuropacs™ system is a software application intended to receive
           and analyze diffusion MRI data from patients aged 40 years and older
@@ -45,7 +58,7 @@
         <h2>Modules</h2>
         <ul>
           <li>Parkinsonism Differentiation
-            <p class="subtext">Primary module.</p>
+            <p class="subtext">Module for identifying patients with Atypical Parkinsonism (i.e., multiple system atrophy Parkinsonian variant (MSAp), or progressive supranuclear palsy (PSP)).</p>
           </li> 
         </ul>    
       </section>
@@ -92,7 +105,7 @@
             </li>
 
             <li>Download the final report.
-                <p class="subtext">Once a order is completed, you have the option to download the final result report in PNG, TXT, JSON, or XML format.</p>    
+                <p class="subtext">Once a order is completed, you have the option to download the final result report in PNG, TXT, JSON, or XML format. After a selection is made, a viewer will open in a Slicer viewer window.</p>    
                 <img src="./resources/neuropacs_download_report_dropdown.png" alt="Download report button image" class="instruction-image">
             </li>
 
@@ -101,7 +114,6 @@
                 <img src="./resources/neuropacs_help_button.png" alt="Help button image" class="instruction-image">
             </li>
         </ol>
-
       </section>
 
       <section id="publications">
@@ -128,8 +140,8 @@
       </section> -->
     </main>
 
-    <footer>
-      <p>Created by <a href="https://github.com/neuropacman">neuropacman</a></p>
+    <footer class="footer">
+      <p>&copy; 2024 neuropacs™. All rights reserved.</p>
     </footer>
   </body>
 </html>
