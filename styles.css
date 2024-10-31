@@ -150,3 +150,28 @@ img {
 .logo {
   width: 5%;
 }
+
+.integration-list,
+.language-list {
+  list-style: none;
+  padding: 0;
+}
+
+.integration-list li,
+.language-list li {
+  margin: 0.5rem 0;
+}
+
+.integration-list a,
+.language-list a {
+  color: #0056b3;
+  text-decoration: none;
+  font-weight: 500;
+  padding: 0.2rem;
+  transition: color 0.3s;
+}
+
+.integration-list a:hover,
+.language-list a:hover {
+  color: #004494;
+}
