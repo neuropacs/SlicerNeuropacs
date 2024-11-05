@@ -175,3 +175,29 @@ img {
 .language-list a:hover {
   color: #004494;
 }
+
+.image-row {
+  position: absolute;
+  top: 10px; /* Adjust as needed for distance from the top */
+  right: 20px; /* Adjust as needed for distance from the right */
+  display: flex;
+  gap: 25px; /* Space between images */
+}
+
+.image-row a {
+  display: inline-block;
+}
+
+.image-row a img {
+  width: 35px; /* Set a fixed width */
+  height: 35px; /* Set a fixed height to ensure uniform dimensions */
+  object-fit: cover; /* Crop the image to fill the area */
+  margin: 0;
+  padding: 0;
+  border: none;
+  transition: transform 0.3s;
+}
+
+.image-row a img:hover {
+  transform: scale(1.1);
+}
