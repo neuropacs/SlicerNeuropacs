@@ -45,6 +45,16 @@ This file was originally developed by Kerrick Cavanaugh (neuropacs Corp.).
 #
 
 
+# Config file selection
+# 1. Default populated
+# 2. Can select another config file or manually change the path
+# ON VALIDATION PRESS -->
+# 3. If selected another config file, should be populated with TEST subject and saved
+# 4. If custom path, created (if possible), then TEST subject popualted and saved
+# 5. If default, create if does not exist, and popualte with TEST subject and saved
+
+
+
 class NeuropacsScriptedModuleWidget(ScriptedLoadableModuleWidget, VTKObservationMixin):
     """Uses ScriptedLoadableModuleWidget base class, available at:
     https://github.com/Slicer/Slicer/blob/main/Base/Python/slicer/ScriptedLoadableModule.py
@@ -56,14 +66,19 @@ class NeuropacsScriptedModuleWidget(ScriptedLoadableModuleWidget, VTKObservation
         VTKObservationMixin.__init__(self)  # needed for parameter node observation
         self.logic = None
         self.neuropacsOrderMap = {}
-        self.neuropacsOrderFilePath = ""
+        self.neuropacsConfigPath = ""
 
-        last_used_path = slicer.util.settingsValue("neuropacs/orderMapPath", default = None)
-        if  last_used_path == None:
-            self.load_npcs_file_selector(qt.QStandardPaths.writableLocation(qt.QStandardPaths.DocumentsLocation) + "/neuropacs_orders.json")
-        else:
-            self.load_npcs_file_selector(last_used_path)
-            self.neuropacsOrderFilePath = last_used_path
+        default_path = slicer.util.settingsValue("neuropacs/configPath", default = None)
+        if  default_path == None:
+            default_path = os.path.join(qt.QStandardPaths.writableLocation(qt.QStandardPaths.DocumentsLocation), "slicer_neuropacs.config")
+            qt.QSettings().setValue("neuropacs/configPath", default_path)
+
+        self.neuropacsConfigPath = default_path
+        #     # self.load_npcs_file_selector(qt.QStandardPaths.writableLocation(qt.QStandardPaths.DocumentsLocation) + "/slicer_neuropacs.config")
+        # else:
+        #     self.load_npcs_file_selector(last_used_path)
+        #     self.neuropacsConfigPath = last_used_path
+        self.load_npcs_file_selector(default_path)
 
 
     def setup(self) -> None:
@@ -98,28 +113,102 @@ class NeuropacsScriptedModuleWidget(ScriptedLoadableModuleWidget, VTKObservation
         parametersCollapsibleButton.text = "Parameters"
         self.layout.addWidget(parametersCollapsibleButton)
 
-        # Layout within the dummy collapsible button
         parametersFormLayout = qt.QFormLayout(parametersCollapsibleButton)
-        self.orderFilePathSelector = ctk.ctkPathLineEdit()
-        self.orderFilePathSelector.filters = ctk.ctkPathLineEdit.Dirs
-        self.orderFilePathSelector.setCurrentPath(default_path)
-        self.orderFilePathSelector.settingKey = 'neuropacsOrderFilePath'
+        self.configPathFileSelector = ctk.ctkPathLineEdit()
+        self.configPathFileSelector.filters = ctk.ctkPathLineEdit.Files
+        self.configPathFileSelector.nameFilters = ['Config Files (*.config)', 'All Files (*)']
+        self.configPathFileSelector.setCurrentPath(default_path)
+        self.configPathFileSelector.settingKey = 'neuropacsConfigPath'
 
-        # Connect the signal to a function to print the selected path
-        self.orderFilePathSelector.currentPathChanged.connect(self.on_order_path_changed)
+        # Add tooltip for guidance
+        self.configPathFileSelector.toolTip = (
+            "Select an existing config file or specify a new one to create."
+        )
 
-        parametersFormLayout.addRow("Order file path:", self.orderFilePathSelector)
+        # Connect the signal to handle the selected path
+        self.configPathFileSelector.currentPathChanged.connect(self.on_config_path_changed)
 
-    def on_order_path_changed(self, new_path):
-        if(new_path):
-            print(new_path + "/neuropacs_orders.json")
-            self.orderFilePathSelector.currentPathChanged.disconnect(self.on_order_path_changed)
-            self.orderFilePathSelector.setCurrentPath(new_path + "/neuropacs_orders.json")
-            self.orderFilePathSelector.currentPathChanged.connect(self.on_order_path_changed)
-            self.neuropacsOrderFilePath = new_path + "/neuropacs_orders.json"
-            qt.QSettings().setValue("neuropacs/orderMapPath", new_path + "/neuropacs_orders.json")
+        parametersFormLayout.addRow("Config file location:", self.configPathFileSelector)
 
-    def setupPythonRequirements(self):
+    def on_config_path_changed(self, new_path):
+        if not new_path:
+            return
+        self.neuropacsConfigPath = new_path  
+        qt.QSettings().setValue("neuropacs/configPath", new_path)
+
+    def create_config(self, path):
+        default_config = {
+            "TEST": "TEST",
+        }
+        try:
+            print("adding defualt")
+            self.neuropacsOrderMap = default_config
+            with open(path, 'w') as config_file:
+                json.dump(default_config, config_file)
+        except Exception as e:
+            slicer.util.errorDisplay(f"Failed to create configuration file '{path}': {str(e)}")
+            raise e  # Re-raise the exception if necessary
+
+    def configure_config(self, path):
+        directory = os.path.dirname(path)
+        if not os.path.isdir(directory):
+            try:
+                os.makedirs(directory)
+                print(f"Created directory '{directory}'.")
+            except Exception as e:
+                slicer.util.errorDisplay(f"Failed to create directory '{directory}': {str(e)}")
+                return
+
+        if not os.access(directory, os.W_OK):
+            slicer.util.warningDisplay(f"No write permission in the directory '{directory}'.")
+            return
+
+        if os.path.isfile(path):
+            # Load existing config
+            try:
+                self.load_config(path)
+                print(f"Configuration loaded from '{path}'.")
+                qt.QApplication.processEvents()
+            except Exception as e:
+                slicer.util.errorDisplay(f"Failed to load configuration: {str(e)}")
+        else:
+            # Create new config file
+            try:
+                self.create_config(path)
+                print(f"Configuration file created at '{path}'.")
+            except Exception as e:
+                slicer.util.errorDisplay(f"Failed to create configuration file: {str(e)}")
+
+
+        # if not self.neuropacsConfigPath == path:
+        #     qt.QSettings().setValue("neuropacs/configPath", path)
+
+    # def load_npcs_file_selector(self, default_path):
+    #     parametersCollapsibleButton = ctk.ctkCollapsibleButton()
+    #     parametersCollapsibleButton.text = "Parameters"
+    #     self.layout.addWidget(parametersCollapsibleButton)
+
+    #     # Layout within the dummy collapsible button
+    #     parametersFormLayout = qt.QFormLayout(parametersCollapsibleButton)
+    #     self.configPathFileSelector = ctk.ctkPathLineEdit()
+    #     self.configPathFileSelector.filters = ctk.ctkPathLineEdit.Dirs
+    #     self.configPathFileSelector.setCurrentPath(default_path)
+    #     self.configPathFileSelector.settingKey = 'neuropacsConfigPath'
+
+    #     # Connect the signal to a function to print the selected path
+    #     self.configPathFileSelector.currentPathChanged.connect(self.on_config_path_changed)
+
+    #     parametersFormLayout.addRow("Order file path:", self.configPathFileSelector)
+
+    # def on_config_path_changed(self, new_path):
+    #     if(new_path):
+    #         self.configPathFileSelector.currentPathChanged.disconnect(self.on_config_path_changed)
+    #         self.configPathFileSelector.setCurrentPath(new_path + "/neuropacs_orders.json")
+    #         self.configPathFileSelector.currentPathChanged.connect(self.on_config_path_changed)
+    #         self.neuropacsConfigPath = new_path + "/neuropacs_orders.json"
+    #         qt.QSettings().setValue("neuropacs/configPath", new_path + "/neuropacs_orders.json")
+
+    def setup_python_requirements(self):
         # install neuropacs pip module if not already installed
         global neuropacs
         try:
@@ -127,8 +216,6 @@ class NeuropacsScriptedModuleWidget(ScriptedLoadableModuleWidget, VTKObservation
             import neuropacs
         except Exception as e:
             print(str(e))
-
-        # here only call upgrade if does not have most recent version
 
     def ensure_latest_neuropacs_installed(self):
         import importlib.metadata
@@ -165,30 +252,28 @@ class NeuropacsScriptedModuleWidget(ScriptedLoadableModuleWidget, VTKObservation
         else:
             print(f"Neuropacs is already up to date (version {installed_version}).")
 
-
-    def saveNeuropacsOrderMapToFile(self):
+    def save_config(self):
         """Save the neuropacs order map to a JSON file."""
-        with open(self.neuropacsOrderFilePath, 'w') as orderFile:
+        with open(self.neuropacsConfigPath, 'w') as orderFile:
             json.dump(self.neuropacsOrderMap, orderFile)
 
-    def loadNeuropacsOrderMapFromFile(self):
+    def load_config(self, path):
         """Load the neuropacs order map from a JSON file."""
-        if os.path.exists(self.neuropacsOrderFilePath):
-            with open(self.neuropacsOrderFilePath, 'r') as orderFile:
+        if os.path.exists(path):
+            with open(path, 'r') as orderFile:
                 self.neuropacsOrderMap = json.load(orderFile)
         else:
-            with open(self.neuropacsOrderFilePath, "a") as file:
+            with open(self.neuropacsConfigPath, "a") as file:
                 json.dump({}, file)
 
     def storeNeuropacsOrder(self, patientId, orderId):
         """Associate an orderId with the patient."""
         self.neuropacsOrderMap[orderId] = patientId  # Store the order associated with the dataset
-        self.saveNeuropacsOrderMapToFile()  # Save the updated map to a file
+        self.save_config()  # Save the updated map to a file
 
     def getNeuropacsOrder(self, orderId):
         """Retrieve the neuropacs order associated with a patient."""
         return self.neuropacsOrderMap.get(orderId, "No order found")
-
 
     def _checkCanNeuropacs(self, caller=None, event=None) -> None:
         """Can neuropacs be pressed""" 
@@ -203,7 +288,7 @@ class NeuropacsScriptedModuleWidget(ScriptedLoadableModuleWidget, VTKObservation
         """Download neuropacs biomarker report png"""
         with slicer.util.tryWithErrorDisplay(_("Failed to download report."), waitCursor=True):
 
-            results = self.npcs.get_results(format, orderId)
+            results = self.npcs.get_results(orderId, format)
 
             # Open file save dialog to let the user select where to save the image
             file_dialog = qt.QFileDialog()
@@ -280,7 +365,7 @@ class NeuropacsScriptedModuleWidget(ScriptedLoadableModuleWidget, VTKObservation
                     del self.neuropacsOrderMap[order_id]
 
                 # Write new neuropacs map
-                self.saveNeuropacsOrderMapToFile()
+                self.save_config()
 
                 self.ui.infoLabel.setText(f"Order {order_id} deleted.")
                 qt.QApplication.processEvents()
@@ -301,7 +386,7 @@ class NeuropacsScriptedModuleWidget(ScriptedLoadableModuleWidget, VTKObservation
                 del self.neuropacsOrderMap[exp]
 
         # Write new neuropacs map
-        self.saveNeuropacsOrderMapToFile()
+        self.save_config()
 
     
     def __extractInfoFromStatus(self, statusObj):
@@ -430,23 +515,26 @@ class NeuropacsScriptedModuleWidget(ScriptedLoadableModuleWidget, VTKObservation
             enteredKey = self.ui.apiKeyLineEdit.text
             # Initialize neuropacs
             try:
+                self.configure_config(self.neuropacsConfigPath)
+
                 self.ui.infoLabel.setText("Setting up Python requirements... ")
                 qt.QApplication.processEvents()
                 # Setup python requirements
-                self.setupPythonRequirements()
+                self.setup_python_requirements()
 
                 self.ui.infoLabel.setText("Validating API key... ")
                 qt.QApplication.processEvents()
 
                 # initialize neuropacs
-                self.npcs = neuropacs.init("https://jdfkdttvlf.execute-api.us-east-1.amazonaws.com/prod", enteredKey, "Slicer")
+                # self.npcs = neuropacs.init("https://jdfkdttvlf.execute-api.us-east-1.amazonaws.com/prod", enteredKey, "Slicer")
+                self.npcs = neuropacs.init("https://ud7cvn39n4.execute-api.us-east-1.amazonaws.com/sandbox", enteredKey, "3D Slicer")
                 self.npcs.connect()
 
                 self.ui.infoLabel.setText("API key validated, populating... ")
                 qt.QApplication.processEvents()
 
-                # Load the neuropacs order map from the file
-                self.loadNeuropacsOrderMapFromFile()
+                # # Load the neuropacs order map from the file
+                # self.load_config()
 
                 # Populate the dropdown with available datasets
                 self.populateDatasetDropdown()
@@ -527,14 +615,14 @@ class NeuropacsScriptedModuleWidget(ScriptedLoadableModuleWidget, VTKObservation
                     logging.info(f"neuropacs order '{orderId}' created")
 
                     # Upload dataset
-                    self.npcs.upload_dataset(selectedFolderPath, orderId, orderId)
+                    self.npcs.upload_dataset_from_path(orderId, selectedFolderPath)
                     logging.info(f"dataset uploaded")
 
                     self.ui.infoLabel.setText("Running order...")
                     qt.QApplication.processEvents()
 
                     # Run neuropacs order
-                    self.npcs.run_job('Atypical/MSAp/PSP-v1.0', orderId)
+                    self.npcs.run_job(orderId, 'Atypical/MSAp/PSP-v1.0')
                     logging.info(f"order {orderId} started")
 
                     self.ui.infoLabel.setText(f"Order {orderId} started...")
