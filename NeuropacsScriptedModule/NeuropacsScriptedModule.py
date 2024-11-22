@@ -526,8 +526,7 @@ class NeuropacsScriptedModuleWidget(ScriptedLoadableModuleWidget, VTKObservation
                 qt.QApplication.processEvents()
 
                 # initialize neuropacs
-                # self.npcs = neuropacs.init("https://jdfkdttvlf.execute-api.us-east-1.amazonaws.com/prod", enteredKey, "Slicer")
-                self.npcs = neuropacs.init("https://ud7cvn39n4.execute-api.us-east-1.amazonaws.com/sandbox", enteredKey, "3D Slicer")
+                self.npcs = neuropacs.init("https://jdfkdttvlf.execute-api.us-east-1.amazonaws.com/prod", enteredKey, "Slicer")
                 self.npcs.connect()
 
                 self.ui.infoLabel.setText("API key validated, populating... ")
