@@ -141,7 +141,6 @@ class NeuropacsScriptedModuleWidget(ScriptedLoadableModuleWidget, VTKObservation
             "TEST": "TEST",
         }
         try:
-            print("adding defualt")
             self.neuropacsOrderMap = default_config
             with open(path, 'w') as config_file:
                 json.dump(default_config, config_file)
@@ -166,9 +165,12 @@ class NeuropacsScriptedModuleWidget(ScriptedLoadableModuleWidget, VTKObservation
         if os.path.isfile(path):
             # Load existing config
             try:
-                self.load_config(path)
-                print(f"Configuration loaded from '{path}'.")
+                if os.path.getsize(path) == 0:
+                    self.create_config(path)
+                else:
+                    self.load_config(path)
                 qt.QApplication.processEvents()
+                print(f"Configuration file loaded from '{path}'.")
             except Exception as e:
                 slicer.util.errorDisplay(f"Failed to load configuration: {str(e)}")
         else:
@@ -178,35 +180,6 @@ class NeuropacsScriptedModuleWidget(ScriptedLoadableModuleWidget, VTKObservation
                 print(f"Configuration file created at '{path}'.")
             except Exception as e:
                 slicer.util.errorDisplay(f"Failed to create configuration file: {str(e)}")
-
-
-        # if not self.neuropacsConfigPath == path:
-        #     qt.QSettings().setValue("neuropacs/configPath", path)
-
-    # def load_npcs_file_selector(self, default_path):
-    #     parametersCollapsibleButton = ctk.ctkCollapsibleButton()
-    #     parametersCollapsibleButton.text = "Parameters"
-    #     self.layout.addWidget(parametersCollapsibleButton)
-
-    #     # Layout within the dummy collapsible button
-    #     parametersFormLayout = qt.QFormLayout(parametersCollapsibleButton)
-    #     self.configPathFileSelector = ctk.ctkPathLineEdit()
-    #     self.configPathFileSelector.filters = ctk.ctkPathLineEdit.Dirs
-    #     self.configPathFileSelector.setCurrentPath(default_path)
-    #     self.configPathFileSelector.settingKey = 'neuropacsConfigPath'
-
-    #     # Connect the signal to a function to print the selected path
-    #     self.configPathFileSelector.currentPathChanged.connect(self.on_config_path_changed)
-
-    #     parametersFormLayout.addRow("Order file path:", self.configPathFileSelector)
-
-    # def on_config_path_changed(self, new_path):
-    #     if(new_path):
-    #         self.configPathFileSelector.currentPathChanged.disconnect(self.on_config_path_changed)
-    #         self.configPathFileSelector.setCurrentPath(new_path + "/neuropacs_orders.json")
-    #         self.configPathFileSelector.currentPathChanged.connect(self.on_config_path_changed)
-    #         self.neuropacsConfigPath = new_path + "/neuropacs_orders.json"
-    #         qt.QSettings().setValue("neuropacs/configPath", new_path + "/neuropacs_orders.json")
 
     def setup_python_requirements(self):
         # install neuropacs pip module if not already installed
